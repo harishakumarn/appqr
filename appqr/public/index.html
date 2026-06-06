@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AppQR — Smart QR codes for your app</title>
+  <meta name="description" content="One QR code. Detects the device. Sends users to App Store or Google Play. Free forever. No subscriptions." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black: #0a0a0a;
+      --white: #f5f2eb;
+      --accent: #ff4d00;
+      --accent2: #00c896;
+      --mid: #1a1a1a;
+      --muted: #555;
+      --border: #2a2a2a;
+      --mono: 'DM Mono', monospace;
+      --display: 'Syne', sans-serif;
+      --body: 'DM Sans', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: var(--body);
+      font-size: 16px;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* Grain overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 1000;
+      opacity: 0.4;
+    }
+
+    /* Nav */
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 2.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      font-family: var(--display);
+      font-size: 1.4rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .logo span { color: var(--accent); }
+
+    nav a {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-decoration: none;
+      letter-spacing: 0.05em;
+      transition: color 0.2s;
+    }
+
+    nav a:hover { color: var(--white); }
+
+    /* Hero */
+    .hero {
+      padding: 6rem 2.5rem 5rem;
+      max-width: 900px;
+      position: relative;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      color: var(--accent2);
+      border: 1px solid var(--accent2);
+      padding: 0.3rem 0.8rem;
+      border-radius: 2px;
+      margin-bottom: 2rem;
+      text-transform: uppercase;
+    }
+
+    .hero-badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: var(--accent2);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    h1 {
+      font-family: var(--display);
+      font-size: clamp(3rem, 8vw, 6rem);
+      font-weight: 800;
+      line-height: 0.95;
+      letter-spacing: -0.03em;
+      margin-bottom: 2rem;
+    }
+
+    h1 em {
+      font-style: normal;
+      color: var(--accent);
+      position: relative;
+    }
+
+    .hero-sub {
+      font-size: 1.15rem;
+      color: #999;
+      max-width: 520px;
+      line-height: 1.7;
+      margin-bottom: 2.5rem;
+    }
+
+    .hero-sub strong { color: var(--white); font-weight: 500; }
+
+    .cta-row {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--accent);
+      color: var(--white);
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      padding: 0.9rem 1.8rem;
+      text-decoration: none;
+      border-radius: 2px;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(255, 77, 0, 0.3);
+    }
+
+    .btn-secondary {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-decoration: none;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 2px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .btn-secondary:hover { color: var(--white); border-color: var(--white); }
+
+    /* Install command */
+    .install-block {
+      margin: 4rem 2.5rem;
+      background: var(--mid);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1.5rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      max-width: 560px;
+    }
+
+    .install-cmd {
+      font-family: var(--mono);
+      font-size: 0.95rem;
+      color: var(--accent2);
+    }
+
+    .install-cmd span { color: var(--muted); }
+
+    .copy-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      padding: 0.4rem 0.8rem;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .copy-btn:hover { border-color: var(--white); color: var(--white); }
+    .copy-btn.copied { border-color: var(--accent2); color: var(--accent2); }
+
+    /* How it works */
+    .section {
+      padding: 5rem 2.5rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .section-label {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 3rem;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      max-width: 900px;
+    }
+
+    .flow-step {
+      padding: 2rem;
+      border-right: 1px solid var(--border);
+      position: relative;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    .flow-step:last-child { border-right: none; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .step-num {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      margin-bottom: 1rem;
+    }
+
+    .step-title {
+      font-family: var(--display);
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      line-height: 1.2;
+    }
+
+    .step-desc {
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* Comparison */
+    .compare {
+      max-width: 700px;
+      margin-top: 3rem;
+    }
+
+    .compare-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 0;
+      font-size: 0.875rem;
+      align-items: center;
+    }
+
+    .compare-row.header {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .compare-row:first-child { border-top: 1px solid var(--border); }
+
+    .compare-label { color: #888; }
+    .compare-no { color: #444; }
+    .compare-yes { color: var(--accent2); font-family: var(--mono); font-size: 0.8rem; }
+    .compare-accent { color: var(--accent); font-family: var(--mono); font-size: 0.8rem; }
+
+    /* CLI example */
+    .cli-block {
+      background: var(--mid);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      max-width: 680px;
+      margin-top: 2rem;
+    }
+
+    .cli-bar {
+      background: #111;
+      padding: 0.7rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .cli-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--border);
+    }
+
+    .cli-body {
+      padding: 1.5rem;
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      line-height: 2;
+    }
+
+    .cli-comment { color: #444; }
+    .cli-cmd { color: var(--white); }
+    .cli-flag { color: #7eb8f7; }
+    .cli-val { color: var(--accent2); }
+    .cli-out { color: #666; }
+    .cli-success { color: var(--accent2); }
+    .cli-info { color: var(--accent); }
+
+    /* Agent section */
+    .agent-box {
+      background: linear-gradient(135deg, #0d1f17 0%, #0a0a0a 100%);
+      border: 1px solid #1a3a2a;
+      border-radius: 4px;
+      padding: 2.5rem;
+      max-width: 700px;
+      margin-top: 2rem;
+    }
+
+    .agent-box h3 {
+      font-family: var(--display);
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+    }
+
+    .agent-box p {
+      color: #888;
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .code-inline {
+      background: #111;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 0.15rem 0.4rem;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--accent2);
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem 2.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    footer p {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+    }
+
+    footer a { color: var(--muted); text-decoration: none; }
+    footer a:hover { color: var(--white); }
+
+    .telemetry-note {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: #333;
+      max-width: 900px;
+      margin: 0 2.5rem 2rem;
+      padding: 1rem;
+      border: 1px solid #1a1a1a;
+      border-radius: 3px;
+      line-height: 1.7;
+    }
+
+    .telemetry-note span { color: #555; }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="logo">App<span>QR</span></div>
+    <a href="https://github.com/yourusername/appqr" target="_blank">github ↗</a>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-badge">Free &amp; Open Source</div>
+    <h1>One QR.<br><em>Two stores.</em><br>No subscription.</h1>
+    <p class="hero-sub">
+      Generate a smart QR code that sends <strong>iOS users to the App Store</strong> and <strong>Android users to Google Play</strong>. Runs on your machine. Lives on your website. Works forever.
+    </p>
+    <div class="cta-row">
+      <a href="https://github.com/yourusername/appqr/releases" class="btn-primary">
+        ↓ Download
+      </a>
+      <a href="#how" class="btn-secondary">see how it works</a>
+    </div>
+  </section>
+
+  <!-- Install -->
+  <div class="install-block">
+    <div class="install-cmd">
+      <span>$</span> npm install -g appqr
+    </div>
+    <button class="copy-btn" onclick="copyInstall(this)">COPY</button>
+  </div>
+
+  <!-- How it works -->
+  <section class="section" id="how">
+    <div class="section-label">// how it works</div>
+    <div class="flow">
+      <div class="flow-step">
+        <div class="step-num">01 — ONCE</div>
+        <div class="step-title">Run setup</div>
+        <div class="step-desc">Paste your App Store and Play Store URLs. AppQR generates a tiny <code>redirect.html</code> and your first QR code.</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">02 — ONCE</div>
+        <div class="step-title">Upload one file</div>
+        <div class="step-desc">Drop <code>redirect.html</code> anywhere on your existing website. You never touch it again.</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">03 — FOREVER</div>
+        <div class="step-title">Run campaigns</div>
+        <div class="step-desc">Generate new QR codes per campaign with separate Apple and Google tracking params. No new files to upload.</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">04 — MAGIC</div>
+        <div class="step-title">It just works</div>
+        <div class="step-desc">Phone scans QR → hits your site → detects device → lands on the right store. Every time.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CLI example -->
+  <section class="section">
+    <div class="section-label">// usage</div>
+    <div class="cli-block">
+      <div class="cli-bar">
+        <div class="cli-dot"></div>
+        <div class="cli-dot"></div>
+        <div class="cli-dot"></div>
+      </div>
+      <div class="cli-body">
+        <div class="cli-comment"># First time — generates redirect.html + qr.png</div>
+        <div class="cli-cmd">appqr setup \</div>
+        <div class="cli-cmd">&nbsp;&nbsp;<span class="cli-flag">--ios</span> <span class="cli-val">"https://apps.apple.com/app/id123"</span> \</div>
+        <div class="cli-cmd">&nbsp;&nbsp;<span class="cli-flag">--android</span> <span class="cli-val">"https://play.google.com/store/apps/details?id=com.app"</span> \</div>
+        <div class="cli-cmd">&nbsp;&nbsp;<span class="cli-flag">--url</span> <span class="cli-val">"https://myapp.com/go"</span></div>
+        <div>&nbsp;</div>
+        <div class="cli-success">✓ redirect.html → ./appqr-output/redirect.html</div>
+        <div class="cli-success">✓ qr.png &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ ./appqr-output/qr.png</div>
+        <div class="cli-info">→ Upload redirect.html to your site at /go</div>
+        <div>&nbsp;</div>
+        <div class="cli-comment"># Every campaign after — just a new QR, no upload needed</div>
+        <div class="cli-cmd">appqr campaign \</div>
+        <div class="cli-cmd">&nbsp;&nbsp;<span class="cli-flag">--url</span> <span class="cli-val">"https://myapp.com/go"</span> \</div>
+        <div class="cli-cmd">&nbsp;&nbsp;<span class="cli-flag">--ios-params</span> <span class="cli-val">"ct=instagram_launch&amp;pt=12345&amp;mt=8"</span> \</div>
+        <div class="cli-cmd">&nbsp;&nbsp;<span class="cli-flag">--android-params</span> <span class="cli-val">"utm_source=instagram&amp;utm_campaign=launch"</span></div>
+        <div>&nbsp;</div>
+        <div class="cli-success">✓ qr.png → ./appqr-campaign/qr.png</div>
+        <div class="cli-info">→ Points to: myapp.com/go?d=eyJhbmRyb2lk...</div>
+      </div>
+    </div>
+
+    <!-- Agent friendly -->
+    <div class="agent-box" style="margin-top:2rem">
+      <h3>Agent-friendly by design</h3>
+      <p>AI agents building your marketing site can call AppQR directly as an npm package — no GUI, no clicks, no human needed.</p>
+      <div class="cli-block" style="margin:0">
+        <div class="cli-body" style="padding:1rem 1.5rem">
+          <div class="cli-cmd"><span style="color:#7eb8f7">import</span> { setup, campaign } <span style="color:#7eb8f7">from</span> <span class="cli-val">'appqr'</span></div>
+          <div>&nbsp;</div>
+          <div class="cli-comment">// agent scaffolding a new marketing site</div>
+          <div class="cli-cmd"><span style="color:#7eb8f7">await</span> <span style="color:#ffd700">setup</span>({ ios, android, hostedUrl, outputPath })</div>
+          <div>&nbsp;</div>
+          <div class="cli-comment">// agent generating a campaign QR automatically</div>
+          <div class="cli-cmd"><span style="color:#7eb8f7">await</span> <span style="color:#ffd700">campaign</span>({ hostedUrl, iosUrl, androidUrl, outputPath })</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Comparison -->
+  <section class="section">
+    <div class="section-label">// vs everything else</div>
+    <div class="compare">
+      <div class="compare-row header">
+        <div></div>
+        <div>Others</div>
+        <div>AppQR</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-label">Smart device redirect</div>
+        <div class="compare-no">✓ paid only</div>
+        <div class="compare-yes">✓ free</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-label">Pricing model</div>
+        <div class="compare-no">$15–40/mo</div>
+        <div class="compare-accent">free</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-label">Your QR works if they shut down</div>
+        <div class="compare-no">✗ no</div>
+        <div class="compare-yes">✓ always</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-label">Campaign tracking params</div>
+        <div class="compare-no">✓ paid only</div>
+        <div class="compare-yes">✓ free</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-label">Separate Apple & Google params</div>
+        <div class="compare-no">✗ rarely</div>
+        <div class="compare-yes">✓ yes</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-label">Agent / CLI friendly</div>
+        <div class="compare-no">✗ no</div>
+        <div class="compare-yes">✓ yes</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-label">Your data on their server</div>
+        <div class="compare-no">✓ always</div>
+        <div class="compare-yes">✗ never</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Telemetry note -->
+  <div class="telemetry-note">
+    <span>Privacy:</span> AppQR sends one anonymous ping per run — just a counter increment. No URLs, no personal data, no identifiers collected. Opt out anytime with <code style="color:#555">APPQR_NO_TELEMETRY=1</code>.
+  </div>
+
+  <footer>
+    <p>AppQR — free forever</p>
+    <p><a href="https://github.com/yourusername/appqr" target="_blank">github ↗</a></p>
+  </footer>
+
+  <script>
+    function copyInstall(btn) {
+      navigator.clipboard.writeText('npm install -g appqr').then(() => {
+        btn.textContent = 'COPIED';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = 'COPY';
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>

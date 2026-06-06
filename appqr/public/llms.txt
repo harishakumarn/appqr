@@ -1,0 +1,172 @@
+# AppQR
+
+AppQR is a free, open source CLI tool and npm package that generates smart QR codes for mobile apps. A single QR code detects the user's device and redirects iOS users to the App Store and Android users to Google Play.
+
+## What it does
+
+- Generates a `redirect.html` file the developer uploads once to their own website
+- Generates QR code images (PNG) that point to that hosted redirect file
+- The redirect file decodes campaign URLs from the QR code itself and redirects based on device
+- Supports separate campaign tracking parameters for Apple App Store and Google Play
+- Works forever — no subscriptions, no third-party servers in the redirect chain
+
+## Two modes
+
+### Setup (run once per app)
+Generates both `redirect.html` and the first `qr.png`. Developer uploads `redirect.html` to their website once and never touches it again.
+
+### Campaign (run per campaign)
+Generates only a new `qr.png` pointing to the already-hosted `redirect.html` with new campaign parameters encoded in the URL. No file upload needed.
+
+## How to use as an npm package
+
+```javascript
+import { setup, campaign } from 'appqr'
+
+// First time — generates redirect.html + qr.png
+const result = await setup({
+  ios: 'https://apps.apple.com/app/id123456789',
+  android: 'https://play.google.com/store/apps/details?id=com.myapp',
+  hostedUrl: 'https://myapp.com/go',
+  iosParams: 'ct=campaign_name&pt=12345&mt=8',
+  androidParams: 'utm_source=instagram&utm_campaign=launch&utm_medium=paid',
+  outputPath: './public/go'
+})
+// result.redirectPath — upload this file to hostedUrl on the user's site
+// result.qrPath       — the QR code image to use in marketing
+
+// Per campaign — generates qr.png only, no upload needed
+const qr = await campaign({
+  ios: 'https://apps.apple.com/app/id123456789',
+  android: 'https://play.google.com/store/apps/details?id=com.myapp',
+  hostedUrl: 'https://myapp.com/go',
+  iosParams: 'ct=instagram_launch&pt=12345&mt=8',
+  androidParams: 'utm_source=instagram&utm_campaign=launch&utm_medium=paid',
+  outputPath: './qrs/instagram'
+})
+// qr.qrPath — use this QR image for the campaign
+```
+
+## How to use as a CLI
+
+```bash
+# Install
+npm install -g appqr
+
+# First time setup
+appqr setup \
+  --ios "https://apps.apple.com/app/id123456789" \
+  --android "https://play.google.com/store/apps/details?id=com.myapp" \
+  --url "https://myapp.com/go" \
+  --ios-params "ct=launch&pt=12345&mt=8" \
+  --android-params "utm_source=launch&utm_campaign=v1"
+
+# New campaign QR
+appqr campaign \
+  --ios "https://apps.apple.com/app/id123456789" \
+  --android "https://play.google.com/store/apps/details?id=com.myapp" \
+  --url "https://myapp.com/go" \
+  --ios-params "ct=instagram_launch&pt=12345&mt=8" \
+  --android-params "utm_source=instagram&utm_campaign=launch&utm_medium=paid" \
+  --output ./qrs/instagram
+```
+
+## URL validation rules
+
+- iOS URL must start with: `https://apps.apple.com`
+- Android URL must start with: `https://play.google.com/store`
+- hostedUrl must be a full URL starting with `https://`
+
+## Apple App Store campaign parameters
+
+| Parameter | Description | Example |
+|-----------|-------------|---------|
+| ct | Campaign token — your label | ct=instagram_launch |
+| pt | Provider token — numeric Apple ID | pt=12345 |
+| mt | Media type — always 8 for apps | mt=8 |
+
+## Google Play campaign parameters (standard UTM)
+
+| Parameter | Description | Example |
+|-----------|-------------|---------|
+| utm_source | Traffic source | utm_source=instagram |
+| utm_medium | Marketing medium | utm_medium=paid |
+| utm_campaign | Campaign name | utm_campaign=launch |
+| utm_content | Specific ad or creative (optional) | utm_content=banner_v1 |
+| utm_term | Keyword for search campaigns (optional) | utm_term=todo+app |
+
+## Architecture notes for agents
+
+- The `redirect.html` is a generic static file — it contains zero campaign data
+- All campaign data is encoded as base64url in the QR code URL itself (?d=...)
+- The redirect file decodes this client-side in the browser using atob()
+- No AppQR servers are involved after setup — the redirect runs entirely on the user's own website
+- Telemetry: one anonymous counter ping per run, no personal data. Opt out with APPQR_NO_TELEMETRY=1
+
+## Common agent workflows
+
+### Scaffolding a new app marketing site
+1. Call `setup()` with the app's store URLs and the URL where redirect.html will live
+2. Copy `result.redirectPath` to the correct location in the site's public directory
+3. Use `result.qrPath` as the QR code image on the landing page
+
+### Generating a campaign QR for a marketing push
+1. Call `campaign()` with the base store URLs, campaign params, and output path
+2. Use `qr.qrPath` as the QR image for that campaign's materials
+
+### Checking if a URL is valid before calling
+```javascript
+import { validateIosUrl, validateAndroidUrl } from 'appqr'
+validateIosUrl('https://apps.apple.com/app/id123')    // true
+validateAndroidUrl('https://play.google.com/store/apps/details?id=com.app') // true
+validateIosUrl('https://example.com')                  // false
+```
+
+## Privacy
+
+AppQR sends one anonymous counter ping per run. No URLs, no campaign data, no personal information, no device identifiers are ever collected or transmitted. Set APPQR_NO_TELEMETRY=1 to opt out entirely.
+
+## Source
+
+https://github.com/yourusername/appqr
+
+## MCP server (Model Context Protocol)
+
+AppQR ships with a built-in MCP server. AI agents that support MCP can call AppQR natively without CLI knowledge.
+
+### Start the MCP server
+
+```bash
+appqr mcp
+```
+
+### Add to agent config (Claude Desktop, Cursor, etc.)
+
+```json
+{
+  "mcpServers": {
+    "appqr": {
+      "command": "npx",
+      "args": ["appqr", "mcp"]
+    }
+  }
+}
+```
+
+### MCP tools available
+
+**appqr_setup** — First time setup. Generates redirect.html and qr.png.
+Parameters: ios (required), android (required), hostedUrl (required), iosParams (optional), androidParams (optional), outputPath (optional, default ./appqr-output)
+
+**appqr_campaign** — Generate a new campaign QR. redirect.html already on site. Generates qr.png only.
+Parameters: ios (required), android (required), hostedUrl (required), iosParams (optional), androidParams (optional), outputPath (optional, default ./appqr-campaign)
+
+**appqr_validate** — Validate store URLs before generating.
+Parameters: ios (optional), android (optional)
+
+### Typical agent workflow for scaffolding a marketing site
+
+1. Agent calls appqr_setup with the app's store URLs and the URL where redirect.html will live on the site
+2. Agent copies result.redirectPath to the correct public directory of the site
+3. Agent uses result.qrPath as the QR image on the landing page
+4. For each future campaign, agent calls appqr_campaign with campaign-specific params

@@ -1,0 +1,51 @@
+{
+  "name": "appqr",
+  "version": "1.0.0",
+  "description": "Smart QR code for App Store + Google Play. One QR detects the device and redirects to the right store. Free, no subscriptions, runs on your machine.",
+  "main": "src/index.js",
+  "types": "src/index.d.ts",
+  "bin": {
+    "appqr": "bin/appqr.js"
+  },
+  "keywords": [
+    "qr-code",
+    "qr",
+    "smart-qr",
+    "qr-generator",
+    "app-store",
+    "google-play",
+    "play-store",
+    "ios",
+    "android",
+    "mobile",
+    "app-marketing",
+    "marketing",
+    "campaign",
+    "utm",
+    "utm-tracking",
+    "app-store-tracking",
+    "redirect",
+    "device-detection",
+    "deeplink",
+    "universal-link",
+    "cli",
+    "automation",
+    "agent",
+    "ai-agent",
+    "ai-friendly",
+    "mcp",
+    "model-context-protocol",
+    "cursor",
+    "copilot"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "commander": "^12.0.0",
+    "qrcode": "^1.5.3",
+    "zod": "^3.22.0"
+  }
+}
