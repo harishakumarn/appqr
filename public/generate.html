@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AppQR — Campaign Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Fraunces:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black: #1a1a18;
+      --white: #faf9f7;
+      --off: #f3f1ed;
+      --muted: #888884;
+      --border: #e0ded9;
+      --accent: #2d6a4f;
+      --accent-light: #e8f4ee;
+      --danger: #c0392b;
+      --body: 'Inter', system-ui, sans-serif;
+      --display: 'Fraunces', Georgia, serif;
+    }
+
+    body {
+      background: var(--white);
+      color: var(--black);
+      font-family: var(--body);
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 3rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      font-family: var(--display);
+      font-size: 1.25rem;
+      font-weight: 300;
+      color: var(--black);
+      text-decoration: none;
+    }
+
+    .logo span { color: var(--accent); }
+
+    nav a.back {
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    nav a.back:hover { color: var(--black); }
+
+    .main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 3rem 2rem 5rem;
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 3rem;
+      align-items: start;
+    }
+
+    .page-title {
+      font-family: var(--display);
+      font-size: 1.8rem;
+      font-weight: 300;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.4rem;
+      grid-column: 1 / -1;
+    }
+
+    .page-sub {
+      font-size: 0.875rem;
+      color: var(--muted);
+      margin-bottom: 2rem;
+      grid-column: 1 / -1;
+    }
+
+    /* Form */
+    .form-section {
+      border-top: 2px solid var(--border);
+      padding-top: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .form-section-title {
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1.25rem;
+    }
+
+    .field { margin-bottom: 1.25rem; }
+
+    label {
+      display: block;
+      font-size: 0.825rem;
+      font-weight: 500;
+      margin-bottom: 0.4rem;
+      color: var(--black);
+    }
+
+    .label-hint {
+      font-weight: 400;
+      color: var(--muted);
+      font-size: 0.775rem;
+      margin-left: 0.4rem;
+    }
+
+    input[type="text"],
+    input[type="url"],
+    select {
+      width: 100%;
+      padding: 0.65rem 0.85rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-family: var(--body);
+      color: var(--black);
+      background: var(--white);
+      transition: border-color 0.15s;
+      outline: none;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--accent);
+    }
+
+    input.error { border-color: var(--danger); }
+
+    .error-msg {
+      font-size: 0.775rem;
+      color: var(--danger);
+      margin-top: 0.3rem;
+      display: none;
+    }
+
+    .error-msg.show { display: block; }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .save-note {
+      font-size: 0.775rem;
+      color: var(--muted);
+      margin-top: 0.4rem;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .save-note::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+    }
+
+    /* Buttons */
+    .btn-generate {
+      width: 100%;
+      background: var(--black);
+      color: var(--white);
+      border: none;
+      padding: 0.85rem 1.5rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      font-family: var(--body);
+      cursor: pointer;
+      transition: opacity 0.2s;
+      margin-top: 0.5rem;
+    }
+
+    .btn-generate:hover { opacity: 0.8; }
+    .btn-generate:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .btn-clear {
+      background: none;
+      border: none;
+      font-size: 0.775rem;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: var(--body);
+      padding: 0;
+      margin-top: 0.75rem;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .btn-clear:hover { color: var(--black); }
+
+    /* Preview panel */
+    .preview-panel {
+      position: sticky;
+      top: 2rem;
+    }
+
+    .preview-card {
+      background: var(--off);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+    }
+
+    .preview-label {
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1.25rem;
+    }
+
+    .qr-box {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      width: 100%;
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+      overflow: hidden;
+      position: relative;
+    }
+
+    #qr-output {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+    }
+
+    #qr-output canvas,
+    #qr-output img {
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    .qr-placeholder {
+      text-align: center;
+      color: var(--border);
+    }
+
+    .qr-placeholder svg { width: 64px; height: 64px; margin-bottom: 0.5rem; }
+    .qr-placeholder p { font-size: 0.8rem; color: var(--muted); }
+
+    .btn-download {
+      width: 100%;
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 0.75rem;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      font-family: var(--body);
+      cursor: pointer;
+      transition: opacity 0.2s;
+      display: none;
+    }
+
+    .btn-download:hover { opacity: 0.85; }
+    .btn-download.show { display: block; }
+
+    .campaign-tag {
+      font-size: 0.775rem;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 0.75rem;
+      display: none;
+      word-break: break-all;
+    }
+
+    .campaign-tag.show { display: block; }
+    .campaign-tag strong { color: var(--black); }
+
+    /* History */
+    .history-section {
+      margin-top: 2rem;
+      border-top: 1px solid var(--border);
+      padding-top: 1rem;
+    }
+
+    .history-label {
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .history-empty {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .history-item {
+      padding: 0.6rem 0;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .history-item:hover { background: var(--off); margin: 0 -0.5rem; padding: 0.6rem 0.5rem; border-radius: 4px; }
+    .history-item:last-child { border-bottom: none; }
+
+    .history-name {
+      font-size: 0.825rem;
+      font-weight: 500;
+      color: var(--black);
+    }
+
+    .history-meta {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo">App<span>QR</span></a>
+  <a href="/" class="back">← Back</a>
+</nav>
+
+<div class="main">
+
+  <h1 class="page-title">Campaign generator</h1>
+  <p class="page-sub">Your app settings are saved locally. Fill in campaign details and download a QR code.</p>
+
+  <!-- Left: Form -->
+  <div>
+
+    <!-- App settings -->
+    <div class="form-section">
+      <div class="form-section-title">App settings — saved in your browser</div>
+
+      <div class="field">
+        <label>App Store URL</label>
+        <input type="url" id="ios" placeholder="https://apps.apple.com/app/id..." />
+        <div class="error-msg" id="ios-err">Must start with https://apps.apple.com</div>
+      </div>
+
+      <div class="field">
+        <label>Play Store URL</label>
+        <input type="url" id="android" placeholder="https://play.google.com/store/apps/details?id=..." />
+        <div class="error-msg" id="android-err">Must start with https://play.google.com/store</div>
+      </div>
+
+      <div class="field">
+        <label>Your redirect URL <span class="label-hint">where redirect.html is hosted</span></label>
+        <input type="url" id="hosted" placeholder="https://myapp.com/go" />
+        <div class="error-msg" id="hosted-err">Must be a full URL starting with https://</div>
+      </div>
+
+      <div class="field">
+        <label>Apple provider token <span class="label-hint">your numeric Apple ID</span></label>
+        <input type="text" id="pt" placeholder="12345678" />
+      </div>
+
+      <div class="save-note">App settings are saved automatically</div>
+    </div>
+
+    <!-- Campaign details -->
+    <div class="form-section">
+      <div class="form-section-title">Campaign details</div>
+
+      <div class="field">
+        <label>Campaign name</label>
+        <input type="text" id="campaign-name" placeholder="e.g. Summer Launch" />
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Source</label>
+          <input type="text" id="source" placeholder="e.g. instagram" />
+        </div>
+        <div class="field">
+          <label>Medium</label>
+          <select id="medium">
+            <option value="paid">Paid</option>
+            <option value="organic">Organic</option>
+            <option value="email">Email</option>
+            <option value="social">Social</option>
+            <option value="print">Print</option>
+            <option value="referral">Referral</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+      </div>
+
+    </div>
+
+    <button class="btn-generate" onclick="generate()">Generate QR Code</button>
+    <button class="btn-clear" onclick="clearSaved()">Clear saved settings</button>
+
+  </div>
+
+  <!-- Right: Preview -->
+  <div class="preview-panel">
+    <div class="preview-card">
+      <div class="preview-label">QR Preview</div>
+
+      <div class="qr-box">
+        <div id="qr-output">
+          <div class="qr-placeholder">
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="4" y="4" width="24" height="24" rx="2" stroke="#e0ded9" stroke-width="2" fill="none"/>
+              <rect x="10" y="10" width="12" height="12" rx="1" fill="#e0ded9"/>
+              <rect x="36" y="4" width="24" height="24" rx="2" stroke="#e0ded9" stroke-width="2" fill="none"/>
+              <rect x="42" y="10" width="12" height="12" rx="1" fill="#e0ded9"/>
+              <rect x="4" y="36" width="24" height="24" rx="2" stroke="#e0ded9" stroke-width="2" fill="none"/>
+              <rect x="10" y="42" width="12" height="12" rx="1" fill="#e0ded9"/>
+              <rect x="36" y="36" width="6" height="6" fill="#e0ded9"/>
+              <rect x="46" y="36" width="6" height="6" fill="#e0ded9"/>
+              <rect x="56" y="36" width="6" height="6" fill="#e0ded9"/>
+              <rect x="36" y="46" width="6" height="6" fill="#e0ded9"/>
+              <rect x="46" y="56" width="6" height="6" fill="#e0ded9"/>
+              <rect x="56" y="46" width="14" height="6" fill="#e0ded9"/>
+            </svg>
+            <p>Fill in the form<br>to generate</p>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-download" id="download-btn" onclick="downloadQR()">Download PNG</button>
+      <div class="campaign-tag" id="campaign-tag"></div>
+
+      <!-- History -->
+      <div class="history-section">
+        <div class="history-label">Recent campaigns</div>
+        <div id="history-list"><div class="history-empty">No campaigns yet</div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const STORAGE_KEY = 'appqr_settings';
+  const HISTORY_KEY = 'appqr_history';
+
+  // ── Load saved settings ──────────────────────────────────────────────────────
+
+  function loadSettings() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      if (saved.ios) document.getElementById('ios').value = saved.ios;
+      if (saved.android) document.getElementById('android').value = saved.android;
+      if (saved.hosted) document.getElementById('hosted').value = saved.hosted;
+      if (saved.pt) document.getElementById('pt').value = saved.pt;
+    } catch(e) {}
+  }
+
+  function saveSettings() {
+    const data = {
+      ios: document.getElementById('ios').value.trim(),
+      android: document.getElementById('android').value.trim(),
+      hosted: document.getElementById('hosted').value.trim(),
+      pt: document.getElementById('pt').value.trim()
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  function clearSaved() {
+    if (!confirm('Clear all saved settings?')) return;
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(HISTORY_KEY);
+    ['ios','android','hosted','pt'].forEach(id => document.getElementById(id).value = '');
+    renderHistory();
+  }
+
+  // Auto-save on input
+  ['ios','android','hosted','pt'].forEach(id => {
+    document.getElementById(id).addEventListener('input', saveSettings);
+  });
+
+  // ── Validation ───────────────────────────────────────────────────────────────
+
+  function validate() {
+    let ok = true;
+
+    const ios = document.getElementById('ios').value.trim();
+    const iosErr = document.getElementById('ios-err');
+    const iosInput = document.getElementById('ios');
+    if (!ios.startsWith('https://apps.apple.com')) {
+      iosErr.classList.add('show');
+      iosInput.classList.add('error');
+      ok = false;
+    } else {
+      iosErr.classList.remove('show');
+      iosInput.classList.remove('error');
+    }
+
+    const android = document.getElementById('android').value.trim();
+    const androidErr = document.getElementById('android-err');
+    const androidInput = document.getElementById('android');
+    if (!android.startsWith('https://play.google.com/store')) {
+      androidErr.classList.add('show');
+      androidInput.classList.add('error');
+      ok = false;
+    } else {
+      androidErr.classList.remove('show');
+      androidInput.classList.remove('error');
+    }
+
+    const hosted = document.getElementById('hosted').value.trim();
+    const hostedErr = document.getElementById('hosted-err');
+    const hostedInput = document.getElementById('hosted');
+    if (!hosted.startsWith('https://')) {
+      hostedErr.classList.add('show');
+      hostedInput.classList.add('error');
+      ok = false;
+    } else {
+      hostedErr.classList.remove('show');
+      hostedInput.classList.remove('error');
+    }
+
+    return ok;
+  }
+
+  // ── URL building ─────────────────────────────────────────────────────────────
+
+  function buildUrls() {
+    const ios = document.getElementById('ios').value.trim();
+    const android = document.getElementById('android').value.trim();
+    const pt = document.getElementById('pt').value.trim();
+    const campaignName = document.getElementById('campaign-name').value.trim()
+      .toLowerCase().replace(/\s+/g, '_') || 'campaign';
+    const source = document.getElementById('source').value.trim().toLowerCase() || 'direct';
+    const medium = document.getElementById('medium').value;
+
+    // Apple params: ct, pt, mt
+    const iosParams = [
+      `ct=${campaignName}`,
+      pt ? `pt=${pt}` : '',
+      'mt=8'
+    ].filter(Boolean).join('&');
+
+    // Google UTM params
+    const androidParams = [
+      `utm_source=${source}`,
+      `utm_medium=${medium}`,
+      `utm_campaign=${campaignName}`
+    ].join('&');
+
+    const iosFull = ios + (ios.includes('?') ? '&' : '?') + iosParams;
+    const androidFull = android + (android.includes('?') ? '&' : '?') + androidParams;
+
+    return { iosFull, androidFull };
+  }
+
+  function encodeUrls(iosUrl, androidUrl) {
+    const payload = JSON.stringify({ ios: iosUrl, android: androidUrl });
+    // base64url encode
+    return btoa(payload).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+
+  function buildQrUrl(hosted, iosUrl, androidUrl) {
+    const base = hosted.endsWith('/') ? hosted.slice(0, -1) : hosted;
+    const encoded = encodeUrls(iosUrl, androidUrl);
+    return `${base}?d=${encoded}`;
+  }
+
+  // ── Generate ─────────────────────────────────────────────────────────────────
+
+  let currentQrUrl = null;
+
+  function generate() {
+    if (!validate()) return;
+    saveSettings();
+
+    const hosted = document.getElementById('hosted').value.trim();
+    const campaignName = document.getElementById('campaign-name').value.trim() || 'Campaign';
+    const source = document.getElementById('source').value.trim() || 'direct';
+
+    const { iosFull, androidFull } = buildUrls();
+    const qrUrl = buildQrUrl(hosted, iosFull, androidFull);
+    currentQrUrl = qrUrl;
+
+    // Render QR
+    const output = document.getElementById('qr-output');
+    output.innerHTML = '';
+    new QRCode(output, {
+      text: qrUrl,
+      width: 260,
+      height: 260,
+      correctLevel: QRCode.CorrectLevel.M,
+      colorDark: '#1a1a18',
+      colorLight: '#ffffff'
+    });
+
+    // Show download button
+    document.getElementById('download-btn').classList.add('show');
+
+    // Show campaign tag
+    const tag = document.getElementById('campaign-tag');
+    tag.innerHTML = `<strong>${campaignName}</strong> · ${source}`;
+    tag.classList.add('show');
+
+    // Save to history
+    saveHistory({ name: campaignName, source, qrUrl, date: new Date().toLocaleDateString() });
+    renderHistory();
+  }
+
+  // ── Download ─────────────────────────────────────────────────────────────────
+
+  function downloadQR() {
+    const canvas = document.querySelector('#qr-output canvas');
+    if (!canvas) return;
+
+    const campaignName = document.getElementById('campaign-name').value.trim()
+      .toLowerCase().replace(/\s+/g, '-') || 'campaign';
+
+    const link = document.createElement('a');
+    link.download = `appqr-${campaignName}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }
+
+  // ── History ──────────────────────────────────────────────────────────────────
+
+  function saveHistory(entry) {
+    try {
+      const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+      history.unshift(entry);
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, 10)));
+    } catch(e) {}
+  }
+
+  function renderHistory() {
+    const list = document.getElementById('history-list');
+    try {
+      const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+      if (!history.length) {
+        list.innerHTML = '<div class="history-empty">No campaigns yet</div>';
+        return;
+      }
+      list.innerHTML = history.map((h, i) => `
+        <div class="history-item" onclick="reloadCampaign(${i})">
+          <div class="history-name">${h.name}</div>
+          <div class="history-meta">${h.source} · ${h.date}</div>
+        </div>
+      `).join('');
+    } catch(e) {}
+  }
+
+  function reloadCampaign(index) {
+    try {
+      const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+      const h = history[index];
+      if (!h) return;
+      currentQrUrl = h.qrUrl;
+
+      const output = document.getElementById('qr-output');
+      output.innerHTML = '';
+      new QRCode(output, {
+        text: h.qrUrl,
+        width: 260,
+        height: 260,
+        correctLevel: QRCode.CorrectLevel.M,
+        colorDark: '#1a1a18',
+        colorLight: '#ffffff'
+      });
+
+      document.getElementById('download-btn').classList.add('show');
+      const tag = document.getElementById('campaign-tag');
+      tag.innerHTML = `<strong>${h.name}</strong> · ${h.source}`;
+      tag.classList.add('show');
+      document.getElementById('campaign-name').value = h.name;
+      document.getElementById('source').value = h.source;
+    } catch(e) {}
+  }
+
+  // ── Init ─────────────────────────────────────────────────────────────────────
+  loadSettings();
+  renderHistory();
+</script>
+</body>
+</html>
