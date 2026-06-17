@@ -281,7 +281,7 @@ The web backend hosts the landing page and collects anonymous usage telemetry (i
 ### 1. Deploy to Vercel
 
 ```bash
-git clone https://github.com/yourusername/appqr
+git clone https://github.com/harishakumarn/appqr
 cd appqr
 vercel deploy
 ```
@@ -362,7 +362,7 @@ APPQR_NO_TELEMETRY=1 appqr setup ...
 PRs welcome. The codebase is intentionally small — core logic is under 200 lines.
 
 ```bash
-git clone https://github.com/yourusername/appqr
+git clone https://github.com/harishakumarn/appqr
 cd appqr/cli
 npm install
 node bin/appqr.js setup --help

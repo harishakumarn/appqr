@@ -344,7 +344,19 @@
 <div class="main">
 
   <h1 class="page-title">Campaign generator</h1>
-  <p class="page-sub">Your app settings are saved locally. Fill in campaign details and download a QR code.</p>
+  <p class="page-sub">Generate a smart QR code that sends iPhone users to the App Store and Android users to Google Play.</p>
+
+  <!-- First time banner -->
+  <div id="first-time-banner" style="grid-column:1/-1; background:var(--accent-light); border:1px solid #c8e6d4; border-radius:8px; padding:1.25rem 1.5rem; margin-bottom:0.5rem; display:none;">
+    <div style="font-size:0.875rem; font-weight:500; margin-bottom:0.5rem; color:var(--black);">First time? Here's what you need to know.</div>
+    <div style="font-size:0.825rem; color:#2d5a40; line-height:1.8;">
+      You'll fill in your app details once — they're saved in your browser so you never retype them. When you generate, you get two files:<br>
+      <strong>redirect.html</strong> — a tiny file your web team uploads to your website once, at a URL you choose. This is the address you'll enter below.<br>
+      <strong>qr.png</strong> — your QR code image, ready to use on anything.<br>
+      After the first setup, future campaigns only need you to fill in campaign details and download a new QR. No more file uploads, ever.
+    </div>
+    <button onclick="document.getElementById('first-time-banner').style.display='none'" style="margin-top:0.75rem; font-family:var(--body); font-size:0.775rem; color:#2d5a40; background:none; border:none; cursor:pointer; padding:0; text-decoration:underline; text-underline-offset:2px;">Got it, hide this</button>
+  </div>
 
   <!-- Left: Form -->
   <div>
@@ -366,14 +378,20 @@
       </div>
 
       <div class="field">
-        <label>Your redirect URL <span class="label-hint">where redirect.html is hosted</span></label>
-        <input type="url" id="hosted" placeholder="https://myapp.com/go" />
+        <label>Where will redirect.html live on your website? <span class="label-hint">full URL including filename</span></label>
+        <input type="url" id="hosted" placeholder="https://myapp.com/go/redirect.html" />
+        <div style="font-size:0.775rem; color:var(--muted); margin-top:0.4rem; line-height:1.6;">
+          This is where your web team will upload the redirect.html file. Pick any path on your website — for example <code style="font-size:0.75rem; background:var(--off); padding:0.1rem 0.3rem; border-radius:3px;">https://myapp.com/go/redirect.html</code>. Once placed, it never moves or changes.
+        </div>
         <div class="error-msg" id="hosted-err">Must be a full URL starting with https://</div>
       </div>
 
       <div class="field">
-        <label>Apple provider token <span class="label-hint">your numeric Apple ID</span></label>
-        <input type="text" id="pt" placeholder="12345678" />
+        <label>Apple provider token <span class="label-hint">optional — for App Store campaign tracking</span></label>
+        <input type="text" id="pt" placeholder="e.g. 12345678" />
+        <div style="font-size:0.775rem; color:var(--muted); margin-top:0.4rem; line-height:1.6;">
+          Your numeric Apple ID — found in App Store Connect under your account settings. Leave blank if you don't need App Store campaign tracking.
+        </div>
       </div>
 
       <div class="save-note">App settings are saved automatically</div>
@@ -443,6 +461,19 @@
 
       <button class="btn-download" id="download-btn" onclick="downloadQR()">Download PNG</button>
       <div class="campaign-tag" id="campaign-tag"></div>
+
+      <div id="next-steps" style="display:none; margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border);">
+        <div style="font-size:0.72rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); margin-bottom:0.75rem;">Next steps</div>
+        <div id="next-steps-first" style="display:none; font-size:0.8rem; color:var(--muted); line-height:1.8;">
+          <div style="margin-bottom:0.5rem;">1. Download the QR image above</div>
+          <div style="margin-bottom:0.75rem;">2. Download the redirect file and give it to your web team — <a href="/redirect.html" download="redirect.html" style="color:var(--accent); text-decoration:none; font-weight:500;">↓ Download redirect.html</a><br><span style="font-size:0.775rem;">This is the same file for every app. Your web team uploads it once to the URL you entered above.</span></div>
+          <div style="margin-bottom:0.5rem;">3. Use the QR image wherever you need it</div>
+        </div>
+        <div id="next-steps-campaign" style="display:none; font-size:0.8rem; color:var(--muted); line-height:1.8;">
+          <div style="margin-bottom:0.5rem;">1. Download the QR image above</div>
+          <div>2. Use it for your campaign — no file upload needed</div>
+        </div>
+      </div>
 
       <!-- History -->
       <div class="history-section">
@@ -539,6 +570,51 @@
 
   // ── URL building ─────────────────────────────────────────────────────────────
 
+  // ── Redirect HTML ────────────────────────────────────────────────────────────
+
+  function generateRedirectHtml() {
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Download the app</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f7;color:#1a1a18;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem}
+    .card{text-align:center;max-width:320px;width:100%}
+    .title{font-size:1.2rem;font-weight:500;margin-bottom:.5rem}
+    .sub{font-size:.875rem;color:#888;margin-bottom:2rem;line-height:1.5}
+    .badges{display:flex;flex-direction:column;gap:.875rem;align-items:center}
+    .badge{display:inline-flex;align-items:center;gap:.75rem;background:#1a1a18;color:#fff;text-decoration:none;padding:.75rem 1.5rem;border-radius:8px;width:200px}
+    .badge svg{width:22px;height:22px;flex-shrink:0}
+    .badge-text{text-align:left}
+    .badge-text small{display:block;font-size:.65rem;opacity:.7;line-height:1;margin-bottom:2px}
+    .badge-text span{font-size:.875rem;font-weight:500}
+    .redirecting{font-size:.875rem;color:#888}
+  </style>
+</head>
+<body>
+  <div class="card" id="card"><p class="redirecting">Redirecting...</p></div>
+  <script>
+    (function(){
+      try {
+        var d=new URLSearchParams(window.location.search).get('d');
+        if(!d) throw new Error('No data');
+        var urls=JSON.parse(atob(d.replace(/-/g,'+').replace(/_/g,'/')));
+        var ua=navigator.userAgent;
+        if(/android/i.test(ua)){window.location.replace(urls.android);return;}
+        if(/iphone|ipad|ipod/i.test(ua)){window.location.replace(urls.ios);return;}
+        document.getElementById('card').innerHTML='<p class="title">Download the app</p><p class="sub">Choose your platform</p><div class="badges"><a class="badge" href="'+urls.ios+'" target="_blank"><svg viewBox="0 0 24 24" fill="white"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg><div class="badge-text"><small>Download on the</small><span>App Store</span></div></a><a class="badge" href="'+urls.android+'" target="_blank"><svg viewBox="0 0 24 24" fill="white"><path d="M3.18 23.76c.3.17.64.22.99.14l12.82-7.41-2.82-2.82-10.99 10zm16.64-9.65L16.96 12l2.86-2.11-12.96-7.48c-.34-.2-.71-.24-1.04-.13L16.96 12l2.86 2.11zM.75 2.35A1.5 1.5 0 0 0 .5 3.1v17.8c0 .27.08.52.25.73L12 12 .75 2.35zm20.07 8.54L18.3 9.22l-1.34.98 1.34.98 2.52 1.83c.71.41.71 1.57 0 1.98l-.01.01-2.51 1.82-1.34.98 1.34.98 2.52-1.83c1.41-.82 1.41-2.99 0-3.81v.01z"/></svg><div class="badge-text"><small>Get it on</small><span>Google Play</span></div></a></div>';
+      } catch(e){document.getElementById('card').innerHTML='<p style="color:#c0392b;font-size:.875rem">Invalid QR code. Please scan again.</p>';}
+    })();
+  </script>
+</body>
+</html>`;
+  }
+
+  // ── URL building ──────────────────────────────────────────────────────────────
+
   function buildUrls() {
     const ios = document.getElementById('ios').value.trim();
     const android = document.getElementById('android').value.trim();
@@ -615,6 +691,14 @@
     const tag = document.getElementById('campaign-tag');
     tag.innerHTML = `<strong>${campaignName}</strong> · ${source}`;
     tag.classList.add('show');
+
+    // Show next steps
+    const isFirst = !JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]').length;
+    document.getElementById('next-steps').style.display = 'block';
+    document.getElementById('next-steps-first').style.display = isFirst ? 'block' : 'none';
+    document.getElementById('next-steps-campaign').style.display = isFirst ? 'none' : 'block';
+
+
 
     // Save to history
     saveHistory({ name: campaignName, source, qrUrl, date: new Date().toLocaleDateString() });
@@ -693,6 +777,14 @@
   // ── Init ─────────────────────────────────────────────────────────────────────
   loadSettings();
   renderHistory();
+
+  // Show first-time banner if no settings saved yet
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    if (!saved.ios && !saved.android) {
+      document.getElementById('first-time-banner').style.display = 'block';
+    }
+  } catch(e) {}
 </script>
 </body>
 </html>

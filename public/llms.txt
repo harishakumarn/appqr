@@ -128,7 +128,7 @@ AppQR sends one anonymous counter ping per run. No URLs, no campaign data, no pe
 
 ## Source
 
-https://github.com/yourusername/appqr
+https://github.com/harishakumarn/appqr
 
 ## MCP server (Model Context Protocol)
 

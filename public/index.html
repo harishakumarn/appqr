@@ -337,64 +337,89 @@
 
 <section class="section" id="how">
   <div class="section-label">How it works</div>
-  <div class="steps">
-    <div class="step">
-      <div class="step-n">01 — once</div>
-      <div class="step-title">Run setup</div>
-      <div class="step-desc">Paste your two store URLs. Get a redirect.html and your first QR image.</div>
-    </div>
-    <div class="step">
-      <div class="step-n">02 — once</div>
-      <div class="step-title">Upload one file</div>
-      <div class="step-desc">Drop redirect.html anywhere on your existing website. Never touch it again.</div>
-    </div>
-    <div class="step">
-      <div class="step-n">03 — forever</div>
-      <div class="step-title">Run campaigns</div>
-      <div class="step-desc">New campaign? Run one command. Get a new QR image. No upload needed.</div>
-    </div>
-    <div class="step">
-      <div class="step-n">04 — magic</div>
-      <div class="step-title">Device detected</div>
-      <div class="step-desc">Phone scans QR, hits your site, detects device, lands on the right store.</div>
-    </div>
-  </div>
-</section>
 
-<hr class="divider" />
+  <div style="max-width:640px; margin:0 auto;">
 
-<section class="section">
-  <div class="section-label">Usage</div>
-  <div class="code-wrap">
-    <div class="code-bar">terminal</div>
-    <div class="code-body">
-      <div class="cc"># first time — generates redirect.html + qr.png</div>
-      <div><span class="ck">appqr setup</span> \</div>
-      <div>&nbsp;&nbsp;<span class="cs">--ios</span> <span class="cv">"https://apps.apple.com/app/id123"</span> \</div>
-      <div>&nbsp;&nbsp;<span class="cs">--android</span> <span class="cv">"https://play.google.com/store/..."</span> \</div>
-      <div>&nbsp;&nbsp;<span class="cs">--url</span> <span class="cv">"https://myapp.com/go"</span></div>
-      <div>&nbsp;</div>
-      <div class="cc"># every campaign after — just a new qr.png</div>
-      <div><span class="ck">appqr campaign</span> \</div>
-      <div>&nbsp;&nbsp;<span class="cs">--url</span> <span class="cv">"https://myapp.com/go"</span> \</div>
-      <div>&nbsp;&nbsp;<span class="cs">--ios-params</span> <span class="cv">"ct=instagram&amp;pt=12345&amp;mt=8"</span> \</div>
-      <div>&nbsp;&nbsp;<span class="cs">--android-params</span> <span class="cv">"utm_source=instagram"</span></div>
+    <!-- Tabs -->
+    <div style="display:flex; gap:0; margin-bottom:2rem; border-bottom:1px solid var(--border);">
+      <button onclick="showTab('marketer')" id="tab-marketer" style="font-family:var(--body); font-size:0.875rem; font-weight:500; padding:0.6rem 1.25rem; border:none; border-bottom:2px solid var(--black); background:none; cursor:pointer; color:var(--black); margin-bottom:-1px;">For marketers</button>
+      <button onclick="showTab('developer')" id="tab-developer" style="font-family:var(--body); font-size:0.875rem; font-weight:500; padding:0.6rem 1.25rem; border:none; border-bottom:2px solid transparent; background:none; cursor:pointer; color:var(--muted); margin-bottom:-1px;">For developers</button>
     </div>
-  </div>
 
-  <div class="mcp-box">
-    <h3>Works natively with AI agents</h3>
-    <p>Add AppQR to Claude or Cursor in one config block. The agent generates QR codes without knowing the CLI at all.</p>
-    <div class="code-wrap" style="margin:0">
-      <div class="code-body" style="padding:1rem 1.5rem; line-height:1.8">
-        <div><span style="color:#555">"mcpServers"</span>: {</div>
-        <div>&nbsp;&nbsp;<span style="color:#555">"appqr"</span>: {</div>
-        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="cs">"command"</span>: <span class="cv">"npx"</span>,</div>
-        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="cs">"args"</span>: <span class="cv">["appqr", "mcp"]</span></div>
-        <div>&nbsp;&nbsp;}</div>
-        <div>}</div>
+    <!-- Marketer panel -->
+    <div id="panel-marketer">
+
+      <div style="background:var(--off); border:1px solid var(--border); border-radius:8px; padding:1.5rem 1.75rem; margin-bottom:2rem;">
+        <div style="font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:1rem;">Prerequisite — one time only</div>
+        <p style="font-size:0.9rem; line-height:1.8; color:var(--black);">
+          Download the <a href="/redirect.html" download="redirect.html" style="color:var(--accent); font-weight:500; text-decoration:none;">redirect.html ↓</a> file and place it anywhere on your website. Note the URL where you placed it — for example <code style="font-size:0.8rem; background:var(--border); padding:0.1rem 0.4rem; border-radius:3px;">https://myapp.com/go/redirect.html</code>. If you don't manage the website yourself, your developer can do this in under 5 minutes.
+        </p>
       </div>
+
+      <div style="font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:1.25rem;">Then whenever you need a QR code</div>
+
+      <div style="display:grid; gap:1rem;">
+        <div style="display:grid; grid-template-columns:28px 1fr; gap:1rem; align-items:start;">
+          <div style="width:28px; height:28px; border-radius:50%; background:var(--black); color:var(--white); display:flex; align-items:center; justify-content:center; font-size:0.775rem; font-weight:500; flex-shrink:0;">1</div>
+          <div style="font-size:0.9rem; padding-top:4px; line-height:1.7;">Go to the <a href="/generate.html" style="color:var(--accent); font-weight:500; text-decoration:none;">campaign generator ↗</a></div>
+        </div>
+        <div style="display:grid; grid-template-columns:28px 1fr; gap:1rem; align-items:start;">
+          <div style="width:28px; height:28px; border-radius:50%; background:var(--black); color:var(--white); display:flex; align-items:center; justify-content:center; font-size:0.775rem; font-weight:500; flex-shrink:0;">2</div>
+          <div style="font-size:0.9rem; padding-top:4px; line-height:1.7;">Enter your App Store URL, Play Store URL, and the redirect URL from the prerequisite step</div>
+        </div>
+        <div style="display:grid; grid-template-columns:28px 1fr; gap:1rem; align-items:start;">
+          <div style="width:28px; height:28px; border-radius:50%; background:var(--accent); color:var(--white); display:flex; align-items:center; justify-content:center; font-size:0.775rem; font-weight:500; flex-shrink:0;">3</div>
+          <div style="font-size:0.9rem; padding-top:4px; line-height:1.7;">Generate and download your QR code. iPhone users land on the App Store, Android users on Google Play</div>
+        </div>
+      </div>
+
     </div>
+
+    <!-- Developer panel -->
+    <div id="panel-developer" style="display:none;">
+
+      <div style="font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:0.75rem;">Install</div>
+      <div class="code-wrap" style="margin-bottom:1.75rem;">
+        <div class="code-body" style="padding:1rem 1.5rem;">
+          <div><span class="ck">npm install -g appqr</span></div>
+        </div>
+      </div>
+
+      <div style="font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:0.75rem;">First time — generates redirect.html + qr.png</div>
+      <div class="code-wrap" style="margin-bottom:0.75rem;">
+        <div class="code-body" style="padding:1rem 1.5rem; line-height:2;">
+          <div><span class="ck">appqr setup</span> \</div>
+          <div>&nbsp;&nbsp;<span class="cs">--ios</span> <span class="cv">"https://apps.apple.com/app/id123"</span> \</div>
+          <div>&nbsp;&nbsp;<span class="cs">--android</span> <span class="cv">"https://play.google.com/store/..."</span> \</div>
+          <div>&nbsp;&nbsp;<span class="cs">--url</span> <span class="cv">"https://myapp.com/go/redirect.html"</span></div>
+        </div>
+      </div>
+      <p style="font-size:0.825rem; color:var(--muted); line-height:1.7; margin-bottom:1.75rem;">Drop the generated <code style="font-size:0.8rem; background:var(--off); padding:0.1rem 0.35rem; border-radius:3px;">redirect.html</code> into your public folder at the path you specified. Done once, never again.</p>
+
+      <div style="font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:0.75rem;">Every campaign after — new qr.png only, no upload needed</div>
+      <div class="code-wrap" style="margin-bottom:1.75rem;">
+        <div class="code-body" style="padding:1rem 1.5rem; line-height:2;">
+          <div><span class="ck">appqr campaign</span> \</div>
+          <div>&nbsp;&nbsp;<span class="cs">--url</span> <span class="cv">"https://myapp.com/go/redirect.html"</span> \</div>
+          <div>&nbsp;&nbsp;<span class="cs">--ios-params</span> <span class="cv">"ct=instagram&amp;pt=12345&amp;mt=8"</span> \</div>
+          <div>&nbsp;&nbsp;<span class="cs">--android-params</span> <span class="cv">"utm_source=instagram&amp;utm_campaign=launch"</span></div>
+        </div>
+      </div>
+
+      <div class="mcp-box">
+        <h3>Works natively with AI agents</h3>
+        <p>Add AppQR to Claude or Cursor in one config block. The agent calls setup and campaign directly.</p>
+        <div class="code-wrap" style="margin:0">
+          <div class="code-body" style="padding:1rem 1.5rem; line-height:1.8">
+            <div><span style="color:#555">"mcpServers"</span>: {</div>
+            <div>&nbsp;&nbsp;<span style="color:#555">"appqr"</span>: { <span class="cs">"command"</span>: <span class="cv">"npx"</span>, <span class="cs">"args"</span>: <span class="cv">["appqr", "mcp"]</span> }</div>
+            <div>}</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
   </div>
 </section>
 
@@ -444,15 +469,135 @@
 <hr class="divider" />
 
 <section class="section" style="text-align:center; padding-bottom: 5rem;">
-  <div class="section-label">For marketers</div>
-  <h2 style="font-family: var(--display); font-size: 1.8rem; font-weight: 300; letter-spacing: -0.02em; margin-bottom: 1rem;">No terminal needed</h2>
-  <p style="color: var(--muted); font-size: 0.95rem; max-width: 420px; margin: 0 auto 2rem; line-height: 1.75;">Use the web generator to create campaign QR codes from your browser. Your app settings are saved — just fill in the campaign details and download.</p>
+  <div class="section-label">Ready to start?</div>
+  <h2 style="font-family: var(--display); font-size: 1.8rem; font-weight: 300; letter-spacing: -0.02em; margin-bottom: 1rem;">Generate your first QR code</h2>
+  <p style="color: var(--muted); font-size: 0.95rem; max-width: 420px; margin: 0 auto 2rem; line-height: 1.75;">No account. No install. Open the generator in your browser and get a QR code in two minutes.</p>
   <a href="/generate.html" style="display:inline-flex; align-items:center; gap:0.4rem; background:var(--accent); color:white; font-size:0.875rem; font-weight:500; padding:0.75rem 1.5rem; border-radius:6px; text-decoration:none; transition:opacity 0.2s;" onmouseover="this.style.opacity=0.85" onmouseout="this.style.opacity=1">Open campaign generator →</a>
 </section>
 
-<p class="telemetry">
-  AppQR sends one anonymous ping per run — a counter increment only. No URLs, no campaign data, no personal information collected. Opt out with <code style="font-size:0.72rem">APPQR_NO_TELEMETRY=1</code>.
-</p>
+<hr class="divider" />
+
+<section class="section" style="padding-bottom:5rem;">
+  <div class="section-label">Privacy & telemetry</div>
+
+  <div style="max-width:640px; margin:0 auto;">
+
+    <!-- Plain English intro -->
+    <p style="font-size:1.05rem; line-height:1.8; color:var(--black); margin-bottom:0.75rem;">
+      AppQR counts how many times it is used. That is all.
+    </p>
+    <p style="font-size:0.9rem; line-height:1.8; color:var(--muted); margin-bottom:2.5rem;">
+      When you run a command, one number goes up on a server. No details about you, your app, or your campaign ever leave your machine. Here is exactly what happens — and what does not.
+    </p>
+
+    <!-- What is sent -->
+    <div style="border-top:2px solid var(--border); padding-top:1.5rem; margin-bottom:2rem;">
+      <div style="font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:1rem;">The exact payload sent to the server</div>
+      <div style="background:var(--black); border-radius:6px; padding:1.25rem 1.5rem; font-family:'SF Mono','Fira Code',monospace; font-size:0.85rem; color:#7ec8a0; margin-bottom:0.75rem;">
+        { "event": "qr_generated" }
+      </div>
+      <p style="font-size:0.825rem; color:var(--muted); line-height:1.7;">
+        One field. One value. The server receives this, increments a counter by one, and discards everything else — including your IP address, which is never stored.
+      </p>
+    </div>
+
+    <!-- Side by side -->
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:2rem;">
+      <div style="border:1px solid #c8e6d4; border-radius:8px; overflow:hidden;">
+        <div style="padding:0.75rem 1rem; background:var(--accent-light); font-size:0.72rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--accent); font-weight:500;">Sent</div>
+        <div style="padding:1rem 1.25rem;">
+          <div style="font-size:0.825rem; color:var(--black); display:flex; align-items:flex-start; gap:0.5rem; margin-bottom:0.5rem;">
+            <span style="color:var(--accent); font-weight:600; flex-shrink:0;">✓</span>
+            <span>Which command was run<br><span style="color:var(--muted); font-size:0.775rem;">setup, campaign, etc.</span></span>
+          </div>
+          <div style="font-size:0.825rem; color:var(--black); display:flex; align-items:flex-start; gap:0.5rem;">
+            <span style="color:var(--accent); font-weight:600; flex-shrink:0;">✓</span>
+            <span>Whether run by a human or an AI agent<br><span style="color:var(--muted); font-size:0.775rem;">detected via terminal type</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div style="border:1px solid #fad0cc; border-radius:8px; overflow:hidden;">
+        <div style="padding:0.75rem 1rem; background:#fef2f2; font-size:0.72rem; letter-spacing:0.08em; text-transform:uppercase; color:#c0392b; font-weight:500;">Never sent</div>
+        <div style="padding:1rem 1.25rem;">
+          <div style="font-size:0.825rem; color:var(--muted); line-height:2.1;">
+            <div>✗ &nbsp;Your IP address</div>
+            <div>✗ &nbsp;Your App Store or Play Store URLs</div>
+            <div>✗ &nbsp;Your campaign parameters</div>
+            <div>✗ &nbsp;Your app name or ID</div>
+            <div>✗ &nbsp;Your machine, OS, or Node version</div>
+            <div>✗ &nbsp;File paths or output directories</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Counter explanation -->
+    <div style="border-top:2px solid var(--border); padding-top:1.5rem; margin-bottom:2rem;">
+      <div style="font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:1rem;">The five counters — what they tell us</div>
+      <div style="display:grid; gap:0.75rem;">
+
+        <div style="display:grid; grid-template-columns:130px 1fr; gap:1rem; align-items:start; padding-bottom:0.75rem; border-bottom:1px solid var(--border);">
+          <code style="font-size:0.775rem; color:var(--accent); background:var(--accent-light); padding:0.2rem 0.5rem; border-radius:3px; white-space:nowrap; height:fit-content;">installed</code>
+          <div>
+            <div style="font-size:0.85rem; font-weight:500; margin-bottom:0.2rem;">How many developers have the tool</div>
+            <div style="font-size:0.8rem; color:var(--muted);">Fires once, on the very first run on a machine. Never again.</div>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:130px 1fr; gap:1rem; align-items:start; padding-bottom:0.75rem; border-bottom:1px solid var(--border);">
+          <code style="font-size:0.775rem; color:var(--accent); background:var(--accent-light); padding:0.2rem 0.5rem; border-radius:3px; white-space:nowrap; height:fit-content;">setup</code>
+          <div>
+            <div style="font-size:0.85rem; font-weight:500; margin-bottom:0.2rem;">How many apps are using AppQR</div>
+            <div style="font-size:0.8rem; color:var(--muted);">Fires each time a new app runs setup for the first time.</div>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:130px 1fr; gap:1rem; align-items:start; padding-bottom:0.75rem; border-bottom:1px solid var(--border);">
+          <code style="font-size:0.775rem; color:var(--accent); background:var(--accent-light); padding:0.2rem 0.5rem; border-radius:3px; white-space:nowrap; height:fit-content;">human_run</code>
+          <div>
+            <div style="font-size:0.85rem; font-weight:500; margin-bottom:0.2rem;">How often developers use it directly</div>
+            <div style="font-size:0.8rem; color:var(--muted);">Fires when run from an interactive terminal — a real person typing a command.</div>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:130px 1fr; gap:1rem; align-items:start; padding-bottom:0.75rem; border-bottom:1px solid var(--border);">
+          <code style="font-size:0.775rem; color:var(--accent); background:var(--accent-light); padding:0.2rem 0.5rem; border-radius:3px; white-space:nowrap; height:fit-content;">agent_run</code>
+          <div>
+            <div style="font-size:0.85rem; font-weight:500; margin-bottom:0.2rem;">How often AI agents are using it</div>
+            <div style="font-size:0.8rem; color:var(--muted);">Fires when run from CI or a non-interactive environment — a signal of agent adoption.</div>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:130px 1fr; gap:1rem; align-items:start;">
+          <code style="font-size:0.775rem; color:var(--accent); background:var(--accent-light); padding:0.2rem 0.5rem; border-radius:3px; white-space:nowrap; height:fit-content;">qr_generated</code>
+          <div>
+            <div style="font-size:0.85rem; font-weight:500; margin-bottom:0.2rem;">Total QR codes generated</div>
+            <div style="font-size:0.8rem; color:var(--muted);">Fires on every successful generation. Tells us how actively the tool is being used.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Opt out -->
+    <div style="border-top:2px solid var(--border); padding-top:1.5rem;">
+      <div style="font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:1rem;">Opt out</div>
+      <p style="font-size:0.85rem; color:var(--muted); line-height:1.7; margin-bottom:1rem;">
+        Don't want to send anything at all? Set this environment variable. AppQR will skip every ping silently.
+      </p>
+      <div style="background:var(--off); border:1px solid var(--border); border-radius:6px; padding:0.85rem 1.25rem; font-family:'SF Mono','Fira Code',monospace; font-size:0.82rem; color:var(--black); margin-bottom:0.75rem;">
+        export APPQR_NO_TELEMETRY=1
+      </div>
+      <p style="font-size:0.825rem; color:var(--muted); line-height:1.7;">
+        Don't take our word for it —
+        <a href="https://github.com/harishakumarn/appqr/blob/main/cli/src/telemetry.js" style="color:var(--accent); text-decoration:none;" target="_blank">read the telemetry source code ↗</a>.
+        It is 50 lines. Everything described here is visible in plain sight.
+      </p>
+    </div>
+
+  </div>
+</section>
 
 <footer>
   <p>AppQR — free forever</p>
@@ -460,6 +605,15 @@
 </footer>
 
 <script>
+  function showTab(tab) {
+    document.getElementById('panel-marketer').style.display = tab === 'marketer' ? 'block' : 'none';
+    document.getElementById('panel-developer').style.display = tab === 'developer' ? 'block' : 'none';
+    document.getElementById('tab-marketer').style.borderBottomColor = tab === 'marketer' ? 'var(--black)' : 'transparent';
+    document.getElementById('tab-marketer').style.color = tab === 'marketer' ? 'var(--black)' : 'var(--muted)';
+    document.getElementById('tab-developer').style.borderBottomColor = tab === 'developer' ? 'var(--black)' : 'transparent';
+    document.getElementById('tab-developer').style.color = tab === 'developer' ? 'var(--black)' : 'var(--muted)';
+  }
+
   function copyCmd(btn) {
     navigator.clipboard.writeText('npm install -g appqr').then(() => {
       btn.textContent = 'Copied';
@@ -467,6 +621,16 @@
       setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('ok'); }, 2000);
     });
   }
+
+  function showTab(tab) {
+    document.getElementById('panel-marketer').style.display = tab === 'marketer' ? 'block' : 'none';
+    document.getElementById('panel-developer').style.display = tab === 'developer' ? 'block' : 'none';
+    document.getElementById('tab-marketer').style.borderBottomColor = tab === 'marketer' ? 'var(--black)' : 'transparent';
+    document.getElementById('tab-marketer').style.color = tab === 'marketer' ? 'var(--black)' : 'var(--muted)';
+    document.getElementById('tab-developer').style.borderBottomColor = tab === 'developer' ? 'var(--black)' : 'transparent';
+    document.getElementById('tab-developer').style.color = tab === 'developer' ? 'var(--black)' : 'var(--muted)';
+  }
 </script>
 </body>
 </html>
+

@@ -1,5 +1,4 @@
 // src/core.js — Core logic for AppQR
-// Handles validation, redirect.html generation, and QR code output
 
 const QRCode = require('qrcode');
 const fs = require('fs');
@@ -9,11 +8,8 @@ const path = require('path');
 
 /**
  * Validate an Apple App Store URL.
- * @param {string} url - URL to validate
- * @returns {boolean} true if valid App Store URL
- * @example
- * validateIosUrl('https://apps.apple.com/app/id123') // true
- * validateIosUrl('https://example.com')              // false
+ * @param {string} url
+ * @returns {boolean}
  */
 function validateIosUrl(url) {
   if (!url || typeof url !== 'string') return false;
@@ -22,11 +18,8 @@ function validateIosUrl(url) {
 
 /**
  * Validate a Google Play Store URL.
- * @param {string} url - URL to validate
- * @returns {boolean} true if valid Play Store URL
- * @example
- * validateAndroidUrl('https://play.google.com/store/apps/details?id=com.app') // true
- * validateAndroidUrl('https://example.com')                                    // false
+ * @param {string} url
+ * @returns {boolean}
  */
 function validateAndroidUrl(url) {
   if (!url || typeof url !== 'string') return false;
@@ -37,10 +30,9 @@ function validateAndroidUrl(url) {
 
 /**
  * Append campaign params to a store URL.
- * Handles whether the base URL already contains a query string.
- * @param {string} baseUrl - The store URL without campaign params
- * @param {string} [params] - Query string params without leading ? e.g. "utm_source=instagram"
- * @returns {string} Full URL with params appended
+ * @param {string} baseUrl
+ * @param {string} [params]
+ * @returns {string}
  */
 function buildStoreUrl(baseUrl, params) {
   if (!params || params.trim() === '') return baseUrl;
@@ -51,12 +43,10 @@ function buildStoreUrl(baseUrl, params) {
 // ─── Encoding ─────────────────────────────────────────────────────────────────
 
 /**
- * Encode both store URLs into a base64url string for embedding in the QR code URL.
- * Uses base64url (URL-safe) encoding — no +, /, or = characters that would need escaping.
- * The redirect.html decodes this client-side using atob() — no server involvement.
- * @param {string} iosUrl - Full iOS store URL including any campaign params
- * @param {string} androidUrl - Full Android store URL including any campaign params
- * @returns {string} base64url-encoded JSON payload
+ * Encode both store URLs into a base64url string for the QR code URL.
+ * @param {string} iosUrl
+ * @param {string} androidUrl
+ * @returns {string}
  */
 function encodeUrls(iosUrl, androidUrl) {
   const payload = JSON.stringify({ ios: iosUrl, android: androidUrl });
@@ -64,11 +54,11 @@ function encodeUrls(iosUrl, androidUrl) {
 }
 
 /**
- * Build the full QR code URL by combining the hosted redirect URL with encoded store URLs.
- * @param {string} hostedUrl - Where redirect.html lives e.g. https://myapp.com/go
- * @param {string} iosUrl - Full iOS store URL
- * @param {string} androidUrl - Full Android store URL
- * @returns {string} Complete URL to embed in the QR code
+ * Build the full QR code URL.
+ * @param {string} hostedUrl
+ * @param {string} iosUrl
+ * @param {string} androidUrl
+ * @returns {string}
  */
 function buildQrUrl(hostedUrl, iosUrl, androidUrl) {
   const encoded = encodeUrls(iosUrl, androidUrl);
@@ -81,19 +71,13 @@ function buildQrUrl(hostedUrl, iosUrl, androidUrl) {
 /**
  * Generate the generic redirect HTML file.
  *
- * This file is intentionally data-free — it contains no campaign data, no store URLs,
- * no tracking parameters. All campaign data is encoded in the QR code URL itself (?d=...).
+ * Mobile: detects iOS or Android and redirects immediately.
+ * Desktop: shows a simple page with both store download badges.
  *
- * The file:
- * 1. Reads the ?d= parameter from the URL
- * 2. Decodes it from base64url to JSON
- * 3. Detects the device OS via navigator.userAgent
- * 4. Redirects to the correct store URL
+ * File is completely data-free — all URLs are decoded from the ?d= param at runtime.
+ * Upload once to your website, never touch again.
  *
- * Because it contains no data, it never needs to be updated after the initial upload.
- * All new campaigns just generate new QR codes — the file stays the same forever.
- *
- * @returns {string} Complete HTML string ready to write to disk
+ * @returns {string}
  */
 function generateRedirectHtml() {
   return `<!DOCTYPE html>
@@ -101,23 +85,67 @@ function generateRedirectHtml() {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Redirecting...</title>
+  <title>Download the app</title>
   <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #faf9f7;
+      color: #1a1a18;
+      min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      min-height: 100vh;
-      margin: 0;
-      background: #0a0a0a;
-      color: #666;
-      font-size: 14px;
+      padding: 2rem;
     }
+    .card {
+      text-align: center;
+      max-width: 320px;
+      width: 100%;
+    }
+    .title {
+      font-size: 1.2rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      color: #1a1a18;
+    }
+    .sub {
+      font-size: 0.875rem;
+      color: #888;
+      margin-bottom: 2rem;
+      line-height: 1.5;
+    }
+    .badges {
+      display: flex;
+      flex-direction: column;
+      gap: 0.875rem;
+      align-items: center;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: #1a1a18;
+      color: #fff;
+      text-decoration: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      width: 200px;
+      transition: opacity 0.2s;
+    }
+    .badge:hover { opacity: 0.8; }
+    .badge svg { width: 22px; height: 22px; flex-shrink: 0; }
+    .badge-text { text-align: left; }
+    .badge-text small { display: block; font-size: 0.65rem; opacity: 0.7; line-height: 1; margin-bottom: 2px; }
+    .badge-text span { font-size: 0.875rem; font-weight: 500; }
+    .redirecting { font-size: 0.875rem; color: #888; }
+    .error { color: #c0392b; font-size: 0.875rem; }
   </style>
 </head>
 <body>
-  <p>Redirecting...</p>
+  <div class="card" id="card">
+    <p class="redirecting">Redirecting...</p>
+  </div>
   <script>
     (function () {
       try {
@@ -125,17 +153,47 @@ function generateRedirectHtml() {
         var d = params.get('d');
         if (!d) throw new Error('No data');
 
-        // base64url → base64 → JSON
         var json = atob(d.replace(/-/g, '+').replace(/_/g, '/'));
         var urls = JSON.parse(json);
+        if (!urls.ios || !urls.android) throw new Error('Missing URLs');
 
         var ua = navigator.userAgent;
-        var target = /android/i.test(ua) ? urls.android : urls.ios;
+        var isAndroid = /android/i.test(ua);
+        var isIos = /iphone|ipad|ipod/i.test(ua);
 
-        if (!target) throw new Error('No URL');
-        window.location.replace(target);
+        if (isAndroid) {
+          window.location.replace(urls.android);
+        } else if (isIos) {
+          window.location.replace(urls.ios);
+        } else {
+          // Desktop — show both store badges
+          document.getElementById('card').innerHTML = [
+            '<p class="title">Download the app</p>',
+            '<p class="sub">Choose your platform below</p>',
+            '<div class="badges">',
+
+            // App Store badge
+            '<a class="badge" href="' + urls.ios + '" target="_blank">',
+            '<svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">',
+            '<path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>',
+            '</svg>',
+            '<div class="badge-text"><small>Download on the</small><span>App Store</span></div>',
+            '</a>',
+
+            // Play Store badge
+            '<a class="badge" href="' + urls.android + '" target="_blank">',
+            '<svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">',
+            '<path d="M3.18 23.76c.3.17.64.22.99.14l12.82-7.41-2.82-2.82-10.99 10zm16.64-9.65L16.96 12l2.86-2.11-12.96-7.48c-.34-.2-.71-.24-1.04-.13L16.96 12l2.86 2.11zM.75 2.35A1.5 1.5 0 0 0 .5 3.1v17.8c0 .27.08.52.25.73L12 12 .75 2.35zm20.07 8.54L18.3 9.22l-1.34.98 1.34.98 2.52 1.83c.71.41.71 1.57 0 1.98l-.01.01-2.51 1.82-1.34.98 1.34.98 2.52-1.83c1.41-.82 1.41-2.99 0-3.81v.01z"/>',
+            '</svg>',
+            '<div class="badge-text"><small>Get it on</small><span>Google Play</span></div>',
+            '</a>',
+
+            '</div>'
+          ].join('');
+        }
       } catch (e) {
-        document.querySelector('p').textContent = 'Invalid QR code. Please scan again.';
+        document.getElementById('card').innerHTML =
+          '<p class="error">Invalid QR code. Please scan again.</p>';
       }
     })();
   </script>
@@ -147,79 +205,42 @@ function generateRedirectHtml() {
 // ─── QR Code Generation ───────────────────────────────────────────────────────
 
 /**
- * Generate a QR code PNG image from a URL.
- * @param {string} url - The URL to encode in the QR code
- * @param {string} outputFilePath - Absolute or relative path for the PNG output
+ * Generate a QR code PNG image.
+ * @param {string} url
+ * @param {string} outputFilePath
  * @returns {Promise<void>}
  */
 async function generateQrImage(url, outputFilePath) {
   await QRCode.toFile(outputFilePath, url, {
-    errorCorrectionLevel: 'M', // Medium — good balance of density and fault tolerance
+    errorCorrectionLevel: 'M',
     type: 'png',
     margin: 2,
     width: 512,
-    color: {
-      dark: '#000000',
-      light: '#FFFFFF'
-    }
+    color: { dark: '#000000', light: '#FFFFFF' }
   });
 }
 
 // ─── Setup Mode ───────────────────────────────────────────────────────────────
 
 /**
- * First time setup. Generates redirect.html and the first QR code.
- *
- * Run this once per app. Upload the generated redirect.html to your website
- * at hostedUrl. You never need to upload or modify it again — all future
- * campaigns just generate new QR codes via campaign().
+ * First time setup. Generates redirect.html and first QR code.
  *
  * @param {object} options
- * @param {string} options.ios - App Store URL (must start with https://apps.apple.com)
- * @param {string} options.android - Play Store URL (must start with https://play.google.com/store)
- * @param {string} options.hostedUrl - URL where redirect.html will be hosted e.g. https://myapp.com/go
- * @param {string} [options.iosParams] - Apple campaign params e.g. "ct=launch&pt=12345&mt=8"
- * @param {string} [options.androidParams] - Google UTM params e.g. "utm_source=instagram&utm_campaign=launch"
- * @param {string} [options.outputPath="./appqr-output"] - Directory to write files into
- *
- * @returns {Promise<{
- *   redirectPath: string,
- *   qrPath: string,
- *   qrUrl: string,
- *   iosUrl: string,
- *   androidUrl: string
- * }>}
- *
- * @throws {Error} If ios URL does not start with https://apps.apple.com
- * @throws {Error} If android URL does not start with https://play.google.com/store
- * @throws {Error} If hostedUrl is not a valid full URL
- *
- * @example
- * const result = await setup({
- *   ios: 'https://apps.apple.com/app/id123456789',
- *   android: 'https://play.google.com/store/apps/details?id=com.myapp',
- *   hostedUrl: 'https://myapp.com/go',
- *   iosParams: 'ct=launch&pt=12345&mt=8',
- *   androidParams: 'utm_source=launch&utm_campaign=v1&utm_medium=organic',
- *   outputPath: './public/go'
- * })
- * // Upload result.redirectPath to your site at /go — once, forever
- * // Use result.qrPath as your QR image
+ * @param {string} options.ios
+ * @param {string} options.android
+ * @param {string} options.hostedUrl
+ * @param {string} [options.iosParams]
+ * @param {string} [options.androidParams]
+ * @param {string} [options.outputPath]
+ * @returns {Promise<{redirectPath, qrPath, qrUrl, iosUrl, androidUrl}>}
  */
 async function setup({ ios, android, hostedUrl, iosParams, androidParams, outputPath = './appqr-output' }) {
-  if (!validateIosUrl(ios)) {
-    throw new Error(`Invalid App Store URL. Must start with: https://apps.apple.com`);
-  }
-  if (!validateAndroidUrl(android)) {
-    throw new Error(`Invalid Play Store URL. Must start with: https://play.google.com/store`);
-  }
-  if (!hostedUrl || !hostedUrl.startsWith('http')) {
-    throw new Error(`Invalid hosted URL. Must be a full URL like: https://myapp.com/go`);
-  }
+  if (!validateIosUrl(ios)) throw new Error('Invalid App Store URL. Must start with: https://apps.apple.com');
+  if (!validateAndroidUrl(android)) throw new Error('Invalid Play Store URL. Must start with: https://play.google.com/store');
+  if (!hostedUrl || !hostedUrl.startsWith('http')) throw new Error('Invalid hosted URL. Must be a full URL like: https://myapp.com/go');
 
   const iosUrl = buildStoreUrl(ios, iosParams);
   const androidUrl = buildStoreUrl(android, androidParams);
-
   const outDir = path.resolve(outputPath);
   fs.mkdirSync(outDir, { recursive: true });
 
@@ -236,56 +257,24 @@ async function setup({ ios, android, hostedUrl, iosParams, androidParams, output
 // ─── Campaign Mode ────────────────────────────────────────────────────────────
 
 /**
- * Generate a new campaign QR code.
- *
- * redirect.html must already be uploaded to hostedUrl from a previous setup() call.
- * This generates only a new QR code image — no file upload needed.
- * Run this once per campaign with campaign-specific tracking parameters.
+ * Generate a new campaign QR code only — no redirect.html needed.
  *
  * @param {object} options
- * @param {string} options.ios - App Store URL (must start with https://apps.apple.com)
- * @param {string} options.android - Play Store URL (must start with https://play.google.com/store)
- * @param {string} options.hostedUrl - URL where redirect.html is already hosted
- * @param {string} [options.iosParams] - Apple campaign params e.g. "ct=instagram_launch&pt=12345&mt=8"
- * @param {string} [options.androidParams] - Google UTM params e.g. "utm_source=instagram&utm_campaign=launch&utm_medium=paid"
- * @param {string} [options.outputPath="./appqr-campaign"] - Directory to write the QR image into
- *
- * @returns {Promise<{
- *   qrPath: string,
- *   qrUrl: string,
- *   iosUrl: string,
- *   androidUrl: string
- * }>}
- *
- * @throws {Error} If ios URL does not start with https://apps.apple.com
- * @throws {Error} If android URL does not start with https://play.google.com/store
- * @throws {Error} If hostedUrl is not a valid full URL
- *
- * @example
- * const qr = await campaign({
- *   ios: 'https://apps.apple.com/app/id123456789',
- *   android: 'https://play.google.com/store/apps/details?id=com.myapp',
- *   hostedUrl: 'https://myapp.com/go',
- *   iosParams: 'ct=instagram_launch&pt=12345&mt=8',
- *   androidParams: 'utm_source=instagram&utm_campaign=launch&utm_medium=paid',
- *   outputPath: './qrs/instagram'
- * })
- * // Use qr.qrPath as your campaign QR image — no upload needed
+ * @param {string} options.ios
+ * @param {string} options.android
+ * @param {string} options.hostedUrl
+ * @param {string} [options.iosParams]
+ * @param {string} [options.androidParams]
+ * @param {string} [options.outputPath]
+ * @returns {Promise<{qrPath, qrUrl, iosUrl, androidUrl}>}
  */
 async function campaign({ ios, android, hostedUrl, iosParams, androidParams, outputPath = './appqr-campaign' }) {
-  if (!validateIosUrl(ios)) {
-    throw new Error(`Invalid App Store URL. Must start with: https://apps.apple.com`);
-  }
-  if (!validateAndroidUrl(android)) {
-    throw new Error(`Invalid Play Store URL. Must start with: https://play.google.com/store`);
-  }
-  if (!hostedUrl || !hostedUrl.startsWith('http')) {
-    throw new Error(`Invalid hosted URL. Must be a full URL like: https://myapp.com/go`);
-  }
+  if (!validateIosUrl(ios)) throw new Error('Invalid App Store URL. Must start with: https://apps.apple.com');
+  if (!validateAndroidUrl(android)) throw new Error('Invalid Play Store URL. Must start with: https://play.google.com/store');
+  if (!hostedUrl || !hostedUrl.startsWith('http')) throw new Error('Invalid hosted URL. Must be a full URL like: https://myapp.com/go');
 
   const iosUrl = buildStoreUrl(ios, iosParams);
   const androidUrl = buildStoreUrl(android, androidParams);
-
   const outDir = path.resolve(outputPath);
   fs.mkdirSync(outDir, { recursive: true });
 

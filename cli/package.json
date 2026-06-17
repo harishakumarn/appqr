@@ -1,6 +1,6 @@
 {
   "name": "appqr",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Smart QR code for App Store + Google Play. One QR detects the device and redirects to the right store. Free, no subscriptions, runs on your machine.",
   "main": "src/index.js",
   "types": "src/index.d.ts",
