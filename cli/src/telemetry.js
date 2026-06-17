@@ -4,7 +4,7 @@
 // Just increments one of five counters on a remote server.
 // Opt out: set APPQR_NO_TELEMETRY=1 in your environment.
 
-const TELEMETRY_URL = 'https://your-appqr-vercel-app.vercel.app/api/ping';
+const TELEMETRY_URL = 'https://appqr-coral.vercel-app.vercel.app/api/ping';
 // ↑ Replace with your actual Vercel deployment URL before publishing
 
 const VALID_EVENTS = ['installed', 'setup', 'human_run', 'agent_run', 'qr_generated'];
